@@ -12,7 +12,7 @@ module.exports = {
   },
   // Get a single thought
   async getAThought(req, res) {
-    await Thought.findOne({ _id: req.params.id })
+    await Thought.findOne({ _id: req.params.thoughtId })
       .then(thought => {
         if (!thought) {
           return res.status(404).json({ message: 'No thought with that ID' });
@@ -78,7 +78,7 @@ module.exports = {
     )
     .then((thought) => {
       if (!thought) {
-        res.status(404).json({ message: 'No thought found with that ID :(' })
+        return res.status(404).json({ message: 'No thought found with that ID :(' });
       }
       res.json(thought);
     })
@@ -88,10 +88,15 @@ module.exports = {
   async removeReaction(req, res) {
     await Thought.findOneAndUpdate(
       { _id: req.params.thoughtId },
-      { $pull: { reactions: { reactionId: req.params.reactionId } } },
+      { $pull: { reactions: { _id: req.params.reactionId } } },
       { new: true }
     )
-      .then((thought) => res.json(thought))
-      .catch((err) => res.status(500).json(err));
-  },
+      .then(thought => {
+        if (!thought) {
+          return res.status(404).json({ message: 'No thought found with that ID :('});
+        }
+       res.json(thought);
+      })
+      .catch(err => res.json(err));
+  }
 };
